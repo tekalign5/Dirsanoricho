@@ -5,9 +5,9 @@ const videoProcessor = {
       title: "Example Video",
       thumbnail: "https://i.ytimg.com/vi/VIDEO_ID/maxresdefault.jpg",
       formats: [
-        { quality: "1080p", url: "https://.../videoplayback?quality=1080..." },
-        { quality: "720p", url: "https://.../videoplayback?quality=720..." },
-        { quality: "480p", url: "https://.../videoplayback?quality=480..." }
+        { quality: "1080p", url: "https://youtu.be/fxajJlGlp5w/videoplayback?quality=1080..." },
+        { quality: "720p", url: "https://youtu.be/fxajJlGlp5w/videoplayback?quality=720..." },
+        { quality: "480p", url: "https://youtu.be/fxajJlGlp5w/videoplayback?quality=480..." }
       ]
     };
   },
