@@ -1,74 +1,92 @@
-// attraction-v2.js - GitHub-hosted version
-// This version works with direct GitHub raw URLs and React Native
-const videoProcessor = {
-  async getVideoInfo(url) {
-    try {
-      // This would be replaced with actual API call to your backend
-      // For demo purposes, we'll simulate different URLs
-      const videoId = url.match(/(?:v=|\/)([a-zA-Z0-9_-]{11})/)?.[1] || 'VIDEO_ID';
-      
-      return {
-        title: "Example Video - " + videoId,
-        thumbnail: `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
-        formats: [
-          {
-            quality: "1080p",
-            url: `https://example.com/videoplayback/${videoId}/1080p`,
-            type: "mp4",
-            bitrate: 4000
-          },
-          {
-            quality: "720p", 
-            url: `https://example.com/videoplayback/${videoId}/720p`,
-            type: "mp4",
-            bitrate: 2500
-          },
-          {
-            quality: "480p",
-            url: `https://example.com/videoplayback/${videoId}/480p`,
-            type: "mp4", 
-            bitrate: 1000
-          }
-        ].filter(format => {
-          // Simulate some formats not being available for certain videos
-          return Math.random() > 0.2; // 80% chance format is available
-        })
-      };
-    } catch (error) {
-      console.error('Error in getVideoInfo:', error);
-      throw new Error('Failed to get video information');
-    }
-  },
-
-  async downloadVideo(url, quality) {
-    try {
-      const info = await this.getVideoInfo(url);
-      const format = info.formats.find(f => f.quality === quality);
-      
-      if (!format) {
-        const availableQualities = info.formats.map(f => f.quality).join(', ');
-        throw new Error(`Quality ${quality} not available. Try: ${availableQualities}`);
+// attraction-v2.js - GitHub-compatible version
+(function() {
+  // Create processor object
+  const videoProcessor = {
+    async getVideoInfo(url) {
+      try {
+        // Extract video ID from URL
+        const videoId = extractVideoId(url);
+        if (!videoId) throw new Error('Invalid YouTube URL');
+        
+        // Simulate different quality options
+        return {
+          title: "YouTube Video - " + videoId,
+          thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
+          formats: getAvailableFormats(videoId)
+        };
+      } catch (error) {
+        console.error('Error in getVideoInfo:', error);
+        throw new Error('Failed to get video information');
       }
+    },
 
-      // In a real implementation, this would generate a signed download URL
-      return {
-        directUrl: format.url,
-        headers: {
-          'User-Agent': 'Mozilla/5.0',
-          'Referer': 'https://www.youtube.com/'
+    async downloadVideo(url, quality) {
+      try {
+        const info = await this.getVideoInfo(url);
+        const format = info.formats.find(f => f.quality === quality);
+        
+        if (!format) {
+          const available = info.formats.map(f => f.quality).join(', ');
+          throw new Error(`Quality ${quality} not available. Try: ${available}`);
         }
-      };
-    } catch (error) {
-      console.error('Error in downloadVideo:', error);
-      throw error;
-    }
-  }
-};
 
-// For GitHub-hosted scripts, we need to handle both CommonJS and direct execution
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = videoProcessor;
-} else {
-  // Fallback for direct script execution
-  window.videoProcessor = videoProcessor;
-}
+        return {
+          url: format.url,
+          headers: {
+            'User-Agent': 'Mozilla/5.0',
+            'Referer': 'https://www.youtube.com/'
+          }
+        };
+      } catch (error) {
+        console.error('Error in downloadVideo:', error);
+        throw error;
+      }
+    }
+  };
+
+  // Helper functions
+  function extractVideoId(url) {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  }
+
+  function getAvailableFormats(videoId) {
+    const formats = [];
+    const qualities = [
+      { name: "1080p", code: "137", type: "mp4" },
+      { name: "720p", code: "22", type: "mp4" },
+      { name: "480p", code: "135", type: "mp4" },
+      { name: "360p", code: "18", type: "mp4" }
+    ];
+
+    qualities.forEach(q => {
+      if (Math.random() > 0.3) { // 70% chance format is available
+        formats.push({
+          quality: q.name,
+          url: `https://example.com/videoplayback/${videoId}/${q.code}`,
+          type: q.type,
+          code: q.code
+        });
+      }
+    });
+
+    return formats.length ? formats : [{
+      quality: "360p",
+      url: `https://example.com/videoplayback/${videoId}/fallback`,
+      type: "mp4",
+      code: "fallback"
+    }];
+  }
+
+  // Export for both browser and Node.js environments
+  if (typeof exports !== 'undefined') {
+    exports = videoProcessor;
+  } else if (typeof window !== 'undefined') {
+    window.videoProcessor = videoProcessor;
+  } else if (typeof global !== 'undefined') {
+    global.videoProcessor = videoProcessor;
+  }
+
+  return videoProcessor;
+})();
